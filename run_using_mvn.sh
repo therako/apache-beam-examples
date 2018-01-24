@@ -5,4 +5,5 @@ mvn compile exec:java -Dexec.mainClass=ApacheBeamExamples.SampleBatchJobPipeline
     --gcpTempLocation=gs://dataflow-staging-us-central1-104143033771/gcp_temp/ \
     --stagingLocation=gs://carousell-dataflow/staging_area/ \
     --project=woven-bonbon-90705 \
-    --jobName=testBQ "
+    --jobName=testBQ \
+    --serviceAccount=dataflow@woven-bonbon-90705.iam.gserviceaccount.com"
