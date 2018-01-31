@@ -1,4 +1,4 @@
-package ApacheBeamExamples.Utils;
+package ApacheBeamExamples.utils;
 
 import com.google.api.services.bigquery.model.TableRow;
 import org.apache.beam.sdk.transforms.DoFn;
