@@ -89,7 +89,7 @@
     </build>
 
     <properties>
-        <buildNumber>1.0.0</buildNumber>
+        <buildNumber>1.0.1</buildNumber>
         <mainClass>FullClassPathHere</mainClass>
 
         <apache.beam.version>2.2.0</apache.beam.version>

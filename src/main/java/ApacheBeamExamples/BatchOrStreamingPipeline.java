@@ -30,8 +30,9 @@ public class BatchOrStreamingPipeline {
         } else {
             inputData = readFromPubSub(pipeline, pipelineOptions);
         }
-        PCollection<String> logStrings = inputData.apply("LogStrings", ParDo.of(new LogStrings()));
+        inputData.apply("LogStrings", ParDo.of(new LogStrings()));
         UnconsumedReads.ensureAllReadsConsumed(pipeline);
+        pipeline.run();
     }
 
     private static PCollection<String> readFromPubSub(Pipeline pipeline,
