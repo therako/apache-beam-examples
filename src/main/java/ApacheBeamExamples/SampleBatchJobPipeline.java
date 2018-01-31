@@ -1,5 +1,6 @@
 package ApacheBeamExamples;
 
+import ApacheBeamExamples.Utils.ParseTableRow;
 import com.google.api.services.bigquery.model.TableRow;
 import org.apache.beam.runners.dataflow.DataflowRunner;
 import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
