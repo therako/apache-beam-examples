@@ -1,22 +1,28 @@
 package ApacheBeamExamples.Utils;
 
+import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.api.services.bigquery.model.TableRow;
+import com.google.api.services.bigquery.model.TableSchema;
 import com.ullink.slack.simpleslackapi.SlackAttachment;
 import com.ullink.slack.simpleslackapi.SlackChannel;
 import com.ullink.slack.simpleslackapi.SlackPreparedMessage;
 import com.ullink.slack.simpleslackapi.SlackSession;
 import com.ullink.slack.simpleslackapi.impl.SlackSessionFactory;
+import org.apache.beam.sdk.coders.AvroCoder;
+import org.apache.beam.sdk.coders.DefaultCoder;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubMessage;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.values.TupleTag;
 import org.joda.time.Instant;
 
-import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 
 public class DeadLetterHandler {
     public static TupleTag<DeadLetterError> DeadLetterTag = new TupleTag<>();
 
-    static class DeadLetterError implements Serializable {
+    @DefaultCoder(AvroCoder.class)
+    public static class DeadLetterError {
         Exception exception;
         PubsubMessage msg;
         Instant timestamp;
@@ -27,21 +33,36 @@ public class DeadLetterHandler {
             this.timestamp = timestamp;
         }
 
-        public TableRow toBqTableRow() {
+        TableRow toBqTableRow() {
             TableRow tableRow  = new TableRow();
             tableRow.set("error_class", exception.getClass());
             tableRow.set("error_msg", exception.getMessage());
             tableRow.set("error_stack", StackTraceUtil.getFullStackTrace(exception, '\n'));
 
             tableRow.set("msg", msg.getPayload());
-            tableRow.set("time_received", timestamp);
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
+            tableRow.set("time_received", simpleDateFormat.format(timestamp.toDate()));
             return tableRow;
+        }
+
+        public static TableSchema getTableSchema() {
+            TableSchema tableSchema = new TableSchema();
+            tableSchema.setFields(new ArrayList<TableFieldSchema>() {
+                {
+                    add(new TableFieldSchema().setName("error_class").setType("STRING").setMode("NULLABLE"));
+                    add(new TableFieldSchema().setName("error_msg").setType("STRING").setMode("NULLABLE"));
+                    add(new TableFieldSchema().setName("error_stack").setType("STRING").setMode("NULLABLE"));
+                    add(new TableFieldSchema().setName("msg").setType("STRING").setMode("NULLABLE"));
+                    add(new TableFieldSchema().setName("time_received").setType("TIMESTAMP").setMode("NULLABLE"));
+                }
+            });
+            return tableSchema;
         }
     }
 
     public static class BuildErrorRecord extends DoFn<DeadLetterError, TableRow> {
         @ProcessElement
-        void processElement(ProcessContext c) {
+        public void processElement(ProcessContext c) {
             DeadLetterError deadLetterError = c.element();
             c.output(deadLetterError.toBqTableRow());
         }
@@ -61,7 +82,7 @@ public class DeadLetterHandler {
         }
 
         @ProcessElement
-        void processElement(ProcessContext c) {
+        public void processElement(ProcessContext c) {
             try {
                 Long currentErrorCount = c.element();
                 if (currentErrorCount > maxErrorRate) {

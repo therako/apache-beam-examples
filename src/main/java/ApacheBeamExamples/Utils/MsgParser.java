@@ -1,17 +1,20 @@
 package ApacheBeamExamples.Utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.api.services.bigquery.model.TableRow;
+import com.google.api.services.bigquery.model.TableSchema;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubMessage;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.values.TupleTag;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class MsgParser extends DoFn<PubsubMessage, TableRow> {
     public static TupleTag<TableRow> SuccessfulParse = new TupleTag<>();
     @ProcessElement
-    void processElement(ProcessContext c) {
+    public void processElement(ProcessContext c) {
         byte[] msg = c.element().getPayload();
         try{
             ObjectMapper objectMapper = new ObjectMapper();
@@ -23,6 +26,18 @@ public class MsgParser extends DoFn<PubsubMessage, TableRow> {
             );
             c.output(DeadLetterHandler.DeadLetterTag, deadLetterError);
         }
+    }
+
+    public static TableSchema getTableSchema() {
+        TableSchema tableSchema = new TableSchema();
+        tableSchema.setFields(new ArrayList<TableFieldSchema>() {
+            {
+                add(new TableFieldSchema().setName("by").setType("STRING").setMode("NULLABLE"));
+                add(new TableFieldSchema().setName("score").setType("INTEGER").setMode("NULLABLE"));
+                add(new TableFieldSchema().setName("title").setType("STRING").setMode("NULLABLE"));
+            }
+        });
+        return tableSchema;
     }
 
     private class News {
