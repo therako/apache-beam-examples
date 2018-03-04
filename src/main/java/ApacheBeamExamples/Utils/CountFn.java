@@ -5,14 +5,14 @@ import org.apache.beam.sdk.coders.DefaultCoder;
 import org.apache.beam.sdk.transforms.Combine;
 
 @DefaultCoder(AvroCoder.class)
-public class CountFn extends Combine.CombineFn<DeadLetterHandler.DeadLetterError, CountFn.Accum, Long> {
+public class CountFn<T> extends Combine.CombineFn<T, CountFn.Accum, Long> {
     @Override
     public Accum createAccumulator() {
         return new Accum();
     }
 
     @Override
-    public Accum addInput(Accum accumulator, DeadLetterHandler.DeadLetterError input) {
+    public Accum addInput(Accum accumulator, T input) {
         accumulator.count++;
         return accumulator;
     }

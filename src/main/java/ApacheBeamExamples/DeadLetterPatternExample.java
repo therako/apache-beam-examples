@@ -3,6 +3,7 @@ package ApacheBeamExamples;
 import ApacheBeamExamples.Utils.CountFn;
 import ApacheBeamExamples.Utils.DeadLetterHandler;
 import ApacheBeamExamples.Utils.MsgParser;
+import com.google.api.services.bigquery.model.TableRow;
 import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.coders.AvroCoder;
@@ -46,13 +47,13 @@ public class DeadLetterPatternExample {
                 BigQueryIO.writeTableRows().to(pipelineOptions.getBqTable())
                     .withSchema(MsgParser.getTableSchema()));
 
-        PCollection<DeadLetterHandler.DeadLetterError> deadLetterErrorPCollection = parseMsg
+        PCollection<TableRow> deadLetterErrorPCollection = parseMsg
             .get(DeadLetterHandler.DeadLetterTag)
-            .setCoder(AvroCoder.of(DeadLetterHandler.DeadLetterError.class));
+            .setCoder(AvroCoder.of(DeadLetterHandler.DeadLetterError.class))
+            .apply("BuildErrorRecord", ParDo.of(new DeadLetterHandler.BuildErrorRecord()));
 
         // Errors - Write raw data to BQ along with error details
         deadLetterErrorPCollection
-            .apply("BuildErrorRecord", ParDo.of(new DeadLetterHandler.BuildErrorRecord()))
             .apply("WriteErrorsToBQ",
                 BigQueryIO.writeTableRows().to(pipelineOptions.getBqErrorsTable())
                     .withSchema(DeadLetterHandler.DeadLetterError.getTableSchema()));
@@ -61,7 +62,7 @@ public class DeadLetterPatternExample {
         deadLetterErrorPCollection
             .apply("ErrorsCounterWindow",
                 Window.into(FixedWindows.of(Duration.standardSeconds(pipelineOptions.getErrorRateWindow()))))
-            .apply("CountErrors", Combine.globally(new CountFn()).withoutDefaults())
+            .apply("CountErrors", Combine.globally(new CountFn<TableRow>()).withoutDefaults())
             .setCoder(BigEndianLongCoder.of())
             .apply("NotifySlackOnHighErrorRate",
                 ParDo.of(new DeadLetterHandler.NotifySlack(
