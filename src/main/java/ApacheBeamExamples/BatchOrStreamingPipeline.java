@@ -1,9 +1,9 @@
 package ApacheBeamExamples;
 
 
-import ApacheBeamExamples.utils.BatchOrStreamingPipelineOptions;
-import ApacheBeamExamples.utils.LogStrings;
-import ApacheBeamExamples.utils.ParseToJson;
+import ApacheBeamExamples.Utils.BatchOrStreamingPipelineOptions;
+import ApacheBeamExamples.Utils.LogStrings;
+import ApacheBeamExamples.Utils.ParseToJson;
 import org.apache.beam.runners.direct.repackaged.runners.core.construction.UnconsumedReads;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.coders.StringUtf8Coder;

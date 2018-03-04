@@ -1,4 +1,4 @@
-package ApacheBeamExamples.utils;
+package ApacheBeamExamples.Utils;
 
 import org.apache.beam.sdk.transforms.DoFn;
 import org.slf4j.Logger;
