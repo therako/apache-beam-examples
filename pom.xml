@@ -109,6 +109,13 @@
 
     </properties>
 
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
+
     <dependencies>
         <dependency>
             <groupId>com.google.protobuf</groupId>
@@ -149,6 +156,12 @@
             <groupId>org.apache.directory.studio</groupId>
             <artifactId>org.apache.commons.io</artifactId>
             <version>${apache.commons.io.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.ullink.slack</groupId>
+            <artifactId>simpleslackapi</artifactId>
+            <version>1.2.0</version>
         </dependency>
 
         <!-- Add slf4j API frontend binding with JUL backend -->
